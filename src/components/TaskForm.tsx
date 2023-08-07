@@ -1,32 +1,50 @@
 import styles from "./TaskForm.module.css";
 
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { ITask } from "../interfaces/Task";
-import { ChangeEvent, FormEvent, useState } from "react";
 
 interface Props {
   btnText: string;
   taskList: ITask[];
   setTaskList?: React.Dispatch<React.SetStateAction<ITask[]>>;
+  task?: ITask | null;
+  handleUpdate?(id: number, title: string, difficulty: number): void;
 }
 
-export const TaskForm = ({ btnText, taskList, setTaskList }: Props) => {
+export const TaskForm = ({
+  btnText,
+  taskList,
+  setTaskList,
+  task,
+  handleUpdate,
+}: Props) => {
   const [id, setId] = useState<number>(0);
   const [title, setTitle] = useState<string>("");
   const [difficulty, setDifficulty] = useState<number>(0);
 
+  useEffect(() => {
+    if (task) {
+      setId(task.id);
+      setTitle(task.title);
+      setDifficulty(task.difficulty);
+    }
+  }, [task]);
+
   const addTaskHandler = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const id = Math.floor(Math.random() * 1000);
+    if (handleUpdate) {
+      handleUpdate(id, title, difficulty);
+    } else {
+      const id = Math.floor(Math.random() * 1000);
 
-    const newTask: ITask = { id, title, difficulty };
+      const newTask: ITask = { id, title, difficulty };
 
-    setTaskList!([...taskList, newTask]);
+      setTaskList!([...taskList, newTask]);
 
-    setTitle("");
-    setDifficulty(0);
-
-    console.log(taskList);
+      setTitle("");
+      setDifficulty(0);
+    }
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -44,9 +62,9 @@ export const TaskForm = ({ btnText, taskList, setTaskList }: Props) => {
         <input
           type="text"
           name="title"
-          placeholder="Titulo da terefa"
-          onChange={handleChange}
+          placeholder="Titulo da tarefa"
           value={title}
+          onChange={handleChange}
         />
       </div>
       <div className={styles.input_container}>
@@ -56,6 +74,7 @@ export const TaskForm = ({ btnText, taskList, setTaskList }: Props) => {
           name="difficulty"
           placeholder="Dificuldade"
           value={difficulty}
+          onChange={handleChange}
         />
       </div>
       <input type="submit" value={btnText} />
